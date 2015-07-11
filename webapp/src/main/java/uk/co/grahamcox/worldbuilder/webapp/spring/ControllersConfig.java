@@ -5,7 +5,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import uk.co.grahamcox.worldbuilder.webapp.DebugController;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.Clock;
+import java.util.Properties;
 
 /**
  * Configuration of controllers
@@ -19,9 +22,14 @@ public class ControllersConfig {
     /**
      * Construct the debug controller
      * @return the debug controller
+     * @throws IOException if there's an error loading the version information
      */
     @Bean
-    public DebugController debugController() {
-        return new DebugController(clock);
+    public DebugController debugController() throws IOException {
+        Properties versionInfo = new Properties();
+        try (InputStream buildInfo = ControllersConfig.class.getResourceAsStream("/build.info")) {
+            versionInfo.load(buildInfo);
+        }
+        return new DebugController(clock, versionInfo);
     }
 }

@@ -50,6 +50,7 @@ public class DebugControllerIntegrationTest extends IntegrationTestBase {
 
     /**
      * Test getting the current server time
+     * @throws Exception never
      */
     @Test
     public void testNow() throws Exception {
@@ -57,5 +58,20 @@ public class DebugControllerIntegrationTest extends IntegrationTestBase {
             .andExpect(MockMvcResultMatchers.status().isOk())
             .andExpect(MockMvcResultMatchers.content().contentTypeCompatibleWith(MediaType.TEXT_PLAIN))
             .andExpect(MockMvcResultMatchers.content().string("2015-07-11T22:20:00Z[UTC]"));
+    }
+
+    /**
+     * Test getting the version information
+     * @throws Exception never
+     */
+    @Test
+    public void testVersion() throws Exception {
+        request(MockMvcRequestBuilders.get("/api/debug/version"))
+            .andExpect(MockMvcResultMatchers.status().isOk())
+            .andExpect(MockMvcResultMatchers.content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.['project.name']").value("Worldbuilder - Webapp"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.['project.version']").value("1.0.0-SNAPSHOT"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.['build.time']").value("11 July 2015, 23:06:27 +01:00"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.['git.revision']").value("90c60f214ba8215e03c312abae24015148015036"));
     }
 }
