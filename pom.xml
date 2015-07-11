@@ -39,6 +39,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <version.jdk>1.8</version.jdk>
+        <version.jetty>9.2.11.v20150529</version.jetty>
         <version.maven>3.2.0</version.maven>
         <version.slf4j>1.7.12</version.slf4j>
     </properties>
@@ -294,6 +295,11 @@
                     <groupId>org.commonjava.maven.plugins</groupId>
                     <artifactId>directory-maven-plugin</artifactId>
                     <version>0.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.eclipse.jetty</groupId>
+                    <artifactId>jetty-maven-plugin</artifactId>
+                    <version>${version.jetty}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.jacoco</groupId>
