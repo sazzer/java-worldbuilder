@@ -19,6 +19,9 @@
     <prerequisites>
         <maven>${version.maven}</maven>
     </prerequisites>
+    <modules>
+        <module>webapp</module>
+    </modules>
     <scm>
         <connection>scm:git:https://github.com/sazzer/java-worldbuilder.git</connection>
         <developerConnection>scm:git:git@github.com:sazzer/java-worldbuilder.git</developerConnection>
@@ -172,7 +175,7 @@
                         </dependency>
                     </dependencies>
                     <configuration>
-                        <configLocation>${basedir}/checkstyle.xml</configLocation>
+                        <configLocation>${project.root.directory}/checkstyle.xml</configLocation>
                         <encoding>UTF-8</encoding>
                         <consoleOutput>true</consoleOutput>
                         <failsOnError>true</failsOnError>
@@ -285,6 +288,11 @@
                     </configuration>
                 </plugin>
                 <plugin>
+                    <groupId>org.commonjava.maven.plugins</groupId>
+                    <artifactId>directory-maven-plugin</artifactId>
+                    <version>0.1</version>
+                </plugin>
+                <plugin>
                     <groupId>org.jacoco</groupId>
                     <artifactId>jacoco-maven-plugin</artifactId>
                     <version>0.7.4.201502262128</version>
@@ -316,6 +324,27 @@
                         <goals>
                             <goal>enforce</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.commonjava.maven.plugins</groupId>
+                <artifactId>directory-maven-plugin</artifactId>
+                <version>0.1</version>
+                <executions>
+                    <execution>
+                        <id>find-root-directory</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>directory-of</goal>
+                        </goals>
+                        <configuration>
+                            <property>project.root.directory</property>
+                            <project>
+                                <groupId>uk.co.grahamcox.worldbuilder</groupId>
+                                <artifactId>worldbuilder</artifactId>
+                            </project>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
