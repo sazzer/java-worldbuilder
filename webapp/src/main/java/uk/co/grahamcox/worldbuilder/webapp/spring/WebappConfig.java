@@ -1,12 +1,15 @@
 package uk.co.grahamcox.worldbuilder.webapp.spring;
 
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.context.annotation.Import;
 
 /**
  * Root of the webapp configuration
  */
 @Configuration
-@EnableWebMvc
+@Import(value = {
+    WebMvcConfig.class,
+    ControllersConfig.class
+})
 public class WebappConfig {
 }
