@@ -27,21 +27,14 @@ import java.time.ZonedDateTime;
 /**
  * Integration Test for the Debug Controller
  */
-@WebAppConfiguration
-@ActiveProfiles("test")
-@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {
     DebugControllerIntegrationTest.Context.class
 })
-public class DebugControllerIntegrationTest {
+public class DebugControllerIntegrationTest extends IntegrationTestBase {
     /**
      * Spring Context to use for the Debug Controller tests
      */
-    @Configuration
-    @Import({
-        CoreConfig.class,
-        WebappConfig.class})
-    public static class Context {
+    public static class Context extends TestContext {
         /** The current time to use */
         public static final ZonedDateTime NOW = ZonedDateTime.of(2015, 7, 11, 22, 20, 0, 0, ZoneId.of("UTC"));
 
@@ -55,28 +48,12 @@ public class DebugControllerIntegrationTest {
         }
     }
 
-    /** The Web Application Context to use */
-    @Autowired
-    private WebApplicationContext webApplicationContext;
-
-    /** The Mock MVC to use */
-    private MockMvc mockMvc;
-
-    /**
-     * Set up the Mock MVC
-     */
-    @Before
-    public void setup() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
-            .build();
-    }
-
     /**
      * Test getting the current server time
      */
     @Test
     public void testNow() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/debug/now"))
+        request(MockMvcRequestBuilders.get("/api/debug/now"))
             .andExpect(MockMvcResultMatchers.status().isOk())
             .andExpect(MockMvcResultMatchers.content().contentTypeCompatibleWith(MediaType.TEXT_PLAIN))
             .andExpect(MockMvcResultMatchers.content().string("2015-07-11T22:20:00Z[UTC]"));
