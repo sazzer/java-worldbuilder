@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
+import uk.co.grahamcox.worldbuilder.spring.CoreConfig;
 import uk.co.grahamcox.worldbuilder.webapp.spring.WebappConfig;
 
 import javax.servlet.ServletContext;
@@ -26,15 +27,17 @@ public class AppInitializer implements WebApplicationInitializer {
     @Override
     public void onStartup(final ServletContext servletContext) throws ServletException {
         LOG.info("Configuring the application");
-        // Create ApplicationContext. I'm using the
-        // AnnotationConfigWebApplicationContext to avoid using beans xml files.
-        AnnotationConfigWebApplicationContext ctx =
-            new AnnotationConfigWebApplicationContext();
-        ctx.register(WebappConfig.class);
+        AnnotationConfigWebApplicationContext coreContext = new AnnotationConfigWebApplicationContext();
+        coreContext.register(CoreConfig.class);
+        coreContext.refresh();
+
+        AnnotationConfigWebApplicationContext webappContext = new AnnotationConfigWebApplicationContext();
+        webappContext.setParent(coreContext);
+        webappContext.register(WebappConfig.class);
 
         // Add the servlet mapping manually and make it initialize automatically
         ServletRegistration.Dynamic servlet =
-            servletContext.addServlet("dispatcher", new DispatcherServlet(ctx));
+            servletContext.addServlet("dispatcher", new DispatcherServlet(webappContext));
         servlet.addMapping("/");
         servlet.setLoadOnStartup(1);
     }
