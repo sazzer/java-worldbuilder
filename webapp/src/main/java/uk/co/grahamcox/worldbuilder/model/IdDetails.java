@@ -1,4 +1,4 @@
-package uk.co.grahamcox.worldbuilder.worlds.model;
+package uk.co.grahamcox.worldbuilder.model;
 
 import java.time.OffsetDateTime;
 import java.util.Objects;
@@ -8,7 +8,7 @@ import java.util.Objects;
  * Specifically, this object contains the ID, Created Date, Last Modified Date and Version of the entity
  * @param <I> The type of ID to use
  */
-public final class IdDetails<I> {
+public final class IdDetails<I extends Id<?>> {
     /** The ID of the entity */
     private final I id;
 

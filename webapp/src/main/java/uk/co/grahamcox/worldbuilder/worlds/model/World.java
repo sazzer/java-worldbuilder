@@ -1,5 +1,7 @@
 package uk.co.grahamcox.worldbuilder.worlds.model;
 
+import uk.co.grahamcox.worldbuilder.model.IdDetails;
+
 import java.util.Optional;
 
 /**
