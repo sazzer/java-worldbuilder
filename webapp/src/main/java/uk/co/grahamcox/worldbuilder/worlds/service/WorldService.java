@@ -1,5 +1,6 @@
 package uk.co.grahamcox.worldbuilder.worlds.service;
 
+import uk.co.grahamcox.worldbuilder.model.HitList;
 import uk.co.grahamcox.worldbuilder.worlds.model.World;
 import uk.co.grahamcox.worldbuilder.worlds.model.WorldId;
 
@@ -15,6 +16,15 @@ public interface WorldService {
      * @return the world, or {@link Optional#empty()} if there isn't one with this ID
      */
     Optional<World> getWorldById(final WorldId id);
+
+    /**
+     * Perform a keyword search of the worlds in the system
+     * @param keyword the keyword search
+     * @param offset the offset of the search results to get
+     * @param count the count of search results to get
+     * @return the actual search results
+     */
+    HitList<World> searchByKeyword(final String keyword, final long offset, final long count);
 
     /**
      * Save the given world, either creating a new one or updating an existing one
