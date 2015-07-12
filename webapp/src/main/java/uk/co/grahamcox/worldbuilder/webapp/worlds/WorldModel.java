@@ -8,18 +8,10 @@ import java.time.OffsetDateTime;
 /**
  * JSON Model to represent the details of a world
  */
-public class WorldModel {
+public class WorldModel extends EditableWorldModel {
     /** The ID of the world */
     @JsonProperty("id")
     private String id;
-
-    /** The name of the world */
-    @JsonProperty("name")
-    private String name;
-
-    /** The description of the world */
-    @JsonProperty("description")
-    private String description;
 
     /** The creation date of the worldbuilder representation of the world */
     @JsonProperty("creation_date")
@@ -43,38 +35,6 @@ public class WorldModel {
      */
     public void setId(final String id) {
         this.id = id;
-    }
-
-    /**
-     * Get the name
-     * @return the name
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * Set the name
-     * @param name the name
-     */
-    public void setName(final String name) {
-        this.name = name;
-    }
-
-    /**
-     * Get the description
-     * @return the description
-     */
-    public String getDescription() {
-        return description;
-    }
-
-    /**
-     * Set the description
-     * @param description the description
-     */
-    public void setDescription(final String description) {
-        this.description = description;
     }
 
     /**
