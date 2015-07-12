@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import uk.co.grahamcox.worldbuilder.webapp.DebugController;
+import uk.co.grahamcox.worldbuilder.webapp.worlds.WorldsController;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,5 +32,14 @@ public class ControllersConfig {
             versionInfo.load(buildInfo);
         }
         return new DebugController(clock, versionInfo);
+    }
+
+    /**
+     * Construct the worlds controller
+     * @return the worlds controller
+     */
+    @Bean
+    public WorldsController worldsController() {
+        return new WorldsController();
     }
 }
