@@ -2,7 +2,7 @@ package uk.co.grahamcox.worldbuilder.webapp.worlds;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.time.ZonedDateTime;
+import java.time.OffsetDateTime;
 
 /**
  * JSON Model to represent the details of a world
@@ -22,7 +22,7 @@ public class WorldModel {
 
     /** The creation date of the worldbuilder representation of the world */
     @JsonProperty("creation_date")
-    private ZonedDateTime creationDate;
+    private OffsetDateTime creationDate;
 
     /**
      * Get the ID
@@ -76,7 +76,7 @@ public class WorldModel {
      * Get when the world was created
      * @return the creation date
      */
-    public ZonedDateTime getCreationDate() {
+    public OffsetDateTime getCreationDate() {
         return creationDate;
     }
 
@@ -84,7 +84,7 @@ public class WorldModel {
      * Set when the world was created
      * @param creationDate the creation date
      */
-    public void setCreationDate(final ZonedDateTime creationDate) {
+    public void setCreationDate(final OffsetDateTime creationDate) {
         this.creationDate = creationDate;
     }
 }

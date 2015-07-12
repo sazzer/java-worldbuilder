@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.time.ZonedDateTime;
+import java.time.OffsetDateTime;
 
 /**
  * Controller for accessing Worlds
@@ -25,7 +25,7 @@ public class WorldsController {
         worldModel.setId(id);
         worldModel.setName("Middle Earth");
         worldModel.setDescription("The world of The Hobbit and The Lord of the Rings");
-        worldModel.setCreationDate(ZonedDateTime.now());
+        worldModel.setCreationDate(OffsetDateTime.now());
         return worldModel;
     }
 }
