@@ -8,7 +8,11 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
+import org.springframework.http.converter.ByteArrayHttpMessageConverter;
+import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.ResourceHttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.DefaultServletHandlerConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -62,7 +66,19 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
 
     @Override
     public void configureMessageConverters(final List<HttpMessageConverter<?>> converters) {
+        // First, add all of the default converters we actually care about
+        converters.add(new ByteArrayHttpMessageConverter());
+        converters.add(new StringHttpMessageConverter());
+        converters.add(new ResourceHttpMessageConverter());
+        converters.add(new FormHttpMessageConverter());
+
+        // Then our custom ones
         converters.add(new MappingJackson2HttpMessageConverter(getObjectMapper()));
+    }
+
+    @Override
+    public void extendMessageConverters(final List<HttpMessageConverter<?>> converters) {
+        System.out.println(">>>>> Converters: " + converters.toString());
     }
 
     /**

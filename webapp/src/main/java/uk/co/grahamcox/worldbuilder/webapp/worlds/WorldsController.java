@@ -4,8 +4,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import uk.co.grahamcox.worldbuilder.webapp.users.UserLink;
 
 import java.time.OffsetDateTime;
+import java.util.UUID;
 
 /**
  * Controller for accessing Worlds
@@ -26,6 +28,9 @@ public class WorldsController {
         worldModel.setName("Middle Earth");
         worldModel.setDescription("The world of The Hobbit and The Lord of the Rings");
         worldModel.setCreationDate(OffsetDateTime.now());
+        worldModel.setOwner(new UserLink());
+        worldModel.getOwner().setId(UUID.randomUUID().toString());
+        worldModel.getOwner().setName("Tolkien");
         return worldModel;
     }
 }

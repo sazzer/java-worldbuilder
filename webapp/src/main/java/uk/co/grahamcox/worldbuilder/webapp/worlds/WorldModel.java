@@ -1,6 +1,7 @@
 package uk.co.grahamcox.worldbuilder.webapp.worlds;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import uk.co.grahamcox.worldbuilder.webapp.users.UserLink;
 
 import java.time.OffsetDateTime;
 
@@ -23,6 +24,10 @@ public class WorldModel {
     /** The creation date of the worldbuilder representation of the world */
     @JsonProperty("creation_date")
     private OffsetDateTime creationDate;
+
+    /** The link to the user that is the owner of this world */
+    @JsonProperty("owner")
+    private UserLink owner;
 
     /**
      * Get the ID
@@ -86,5 +91,21 @@ public class WorldModel {
      */
     public void setCreationDate(final OffsetDateTime creationDate) {
         this.creationDate = creationDate;
+    }
+
+    /**
+     * Get the owner
+     * @return the owner
+     */
+    public UserLink getOwner() {
+        return owner;
+    }
+
+    /**
+     * Set the owner
+     * @param owner the owner
+     */
+    public void setOwner(final UserLink owner) {
+        this.owner = owner;
     }
 }
