@@ -1,6 +1,7 @@
 package uk.co.grahamcox.worldbuilder.worlds.service;
 
 import uk.co.grahamcox.worldbuilder.model.HitList;
+import uk.co.grahamcox.worldbuilder.model.VersionedId;
 import uk.co.grahamcox.worldbuilder.worlds.model.World;
 import uk.co.grahamcox.worldbuilder.worlds.model.WorldId;
 
@@ -37,5 +38,5 @@ public interface WorldService {
      * Delete the given world
      * @param world the world to delete
      */
-    void deleteWorld(final World world);
+    void deleteWorld(final VersionedId<WorldId> world);
 }
