@@ -38,12 +38,13 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <version.jackson>2.5.3</version.jackson>
+        <version.jackson>2.5.4</version.jackson>
         <version.jdk>1.8</version.jdk>
         <version.jetty>9.2.11.v20150529</version.jetty>
         <version.maven>3.2.0</version.maven>
         <version.slf4j>1.7.12</version.slf4j>
-        <version.spring>4.1.6.RELEASE</version.spring>
+        <version.spring>4.1.7.RELEASE</version.spring>
+        <version.springData>1.8.1.RELEASE</version.springData>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -75,7 +76,7 @@
             <dependency>
                 <groupId>com.jayway.jsonpath</groupId>
                 <artifactId>json-path</artifactId>
-                <version>1.2.0</version>
+                <version>2.0.0</version>
             </dependency>
             <dependency>
                 <groupId>javax.servlet</groupId>
@@ -96,6 +97,16 @@
                 <groupId>org.easymock</groupId>
                 <artifactId>easymock</artifactId>
                 <version>3.3.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-entitymanager</artifactId>
+                <version>4.3.9.Final</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate.javax.persistence</groupId>
+                <artifactId>hibernate-jpa-2.1-api</artifactId>
+                <version>1.0.0.Final</version>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
@@ -121,6 +132,11 @@
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-webmvc</artifactId>
                 <version>${version.spring}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.data</groupId>
+                <artifactId>spring-data-jpa</artifactId>
+                <version>${version.springData}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
