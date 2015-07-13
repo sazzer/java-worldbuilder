@@ -1,4 +1,4 @@
-package uk.co.grahamcox.worldbuilder.worlds.service;
+package uk.co.grahamcox.worldbuilder.worlds.model;
 
 import uk.co.grahamcox.worldbuilder.model.IdDetails;
 

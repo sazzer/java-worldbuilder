@@ -2,6 +2,8 @@ package uk.co.grahamcox.worldbuilder.worlds.service;
 
 import uk.co.grahamcox.worldbuilder.model.HitList;
 import uk.co.grahamcox.worldbuilder.model.VersionedId;
+import uk.co.grahamcox.worldbuilder.worlds.model.World;
+import uk.co.grahamcox.worldbuilder.worlds.model.WorldId;
 
 import java.util.Optional;
 
