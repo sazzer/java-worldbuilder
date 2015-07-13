@@ -1,6 +1,5 @@
 package uk.co.grahamcox.worldbuilder.model;
 
-import java.time.OffsetDateTime;
 import java.util.Objects;
 import java.util.Optional;
 
