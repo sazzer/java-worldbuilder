@@ -21,6 +21,7 @@
     </prerequisites>
     <modules>
         <module>webapp</module>
+        <module>mongo-test</module>
     </modules>
     <scm>
         <connection>scm:git:https://github.com/sazzer/java-worldbuilder.git</connection>

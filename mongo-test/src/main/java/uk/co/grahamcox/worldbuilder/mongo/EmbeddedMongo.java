@@ -21,11 +21,14 @@ public class EmbeddedMongo implements AutoCloseable {
     /** The logger to use */
     private static final Logger LOG = LoggerFactory.getLogger(EmbeddedMongo.class);
 
+    /** The port number to use */
+    public static final int DEFAULT_PORT = 12345;
+
     /** The mongo executable */
     private Optional<MongodExecutable> mongodExecutable = Optional.empty();
 
     /** The port to listen on */
-    private int port = 12345;
+    private int port = DEFAULT_PORT;
     /**
      * Start the embedded MongoDB data store
      * @throws Exception if anything goes wrong
