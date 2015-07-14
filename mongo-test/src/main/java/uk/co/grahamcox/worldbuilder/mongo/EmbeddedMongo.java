@@ -12,6 +12,8 @@ import de.flapdoodle.embed.process.runtime.Network;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.Optional;
 
 /**
@@ -21,14 +23,12 @@ public class EmbeddedMongo implements AutoCloseable {
     /** The logger to use */
     private static final Logger LOG = LoggerFactory.getLogger(EmbeddedMongo.class);
 
-    /** The port number to use */
-    public static final int DEFAULT_PORT = 12345;
-
     /** The mongo executable */
     private Optional<MongodExecutable> mongodExecutable = Optional.empty();
 
     /** The port to listen on */
-    private int port = DEFAULT_PORT;
+    private int port;
+
     /**
      * Start the embedded MongoDB data store
      * @throws Exception if anything goes wrong
@@ -37,6 +37,17 @@ public class EmbeddedMongo implements AutoCloseable {
         if (mongodExecutable.isPresent()) {
             throw new IllegalStateException("Server is already running");
         }
+
+        port = Optional.ofNullable(System.getProperty("port.mongodb"))
+            .map(Integer::parseInt)
+            .orElseGet(() -> {
+                try {
+                    return new ServerSocket(0).getLocalPort();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
         LOG.debug("Starting MongoDB server on port {}", port);
         IMongodConfig mongodConfig = new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
