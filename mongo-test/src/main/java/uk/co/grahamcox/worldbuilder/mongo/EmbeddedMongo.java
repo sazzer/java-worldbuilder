@@ -38,7 +38,7 @@ public class EmbeddedMongo implements AutoCloseable {
             throw new IllegalStateException("Server is already running");
         }
 
-        port = Optional.ofNullable(System.getProperty("port.mongodb"))
+        port = Optional.ofNullable(System.getProperty("port.mongodb.embedded"))
             .map(Integer::parseInt)
             .orElseGet(() -> {
                 try {
