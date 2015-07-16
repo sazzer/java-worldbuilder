@@ -4,15 +4,23 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import java.time.Clock;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
+
+import org.assertj.core.api.Assertions;
 import org.bson.Document;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import uk.co.grahamcox.worldbuilder.model.IdDetails;
 import uk.co.grahamcox.worldbuilder.mongo.EmbeddedMongoRule;
+import uk.co.grahamcox.worldbuilder.worlds.model.World;
 import uk.co.grahamcox.worldbuilder.worlds.model.WorldId;
 
 /**
@@ -45,6 +53,47 @@ public class MongoWorldDaoTest {
     }
 
     /**
+     * Test the request to get an unknown document
+     */
+    @Test
+    public void testGetUnknown() {
+        Collection<World> worlds = dao.getByIds(Collections.singleton(new WorldId("unknown")));
+        Assertions.assertThat(worlds).isEmpty();
+    }
+
+    /**
+     * Test the request to get an unknown document
+     */
+    @Test
+    public void testGetSingle() {
+        WorldId worldId = new WorldId(UUID.randomUUID().toString());
+
+        Document newDocument = new Document();
+        newDocument.append("_id", worldId.getId());
+        newDocument.append("version", 5L);
+        newDocument.append("createdDate", "2015-07-16T07:10:00Z");
+        newDocument.append("modifiedDate", "2015-07-16T07:10:25Z");
+        newDocument.append("name", "Test World");
+        newDocument.append("description", "This is a test world");
+        worldsCollection.insertOne(newDocument);
+
+        Collection<World> worlds = dao.getByIds(Collections.singleton(worldId));
+        Assertions.assertThat(worlds).hasSize(1);
+        World world = worlds.iterator().next();
+        Assertions.assertThat(world).isNotNull();
+        Assertions.assertThat(world.getName()).isEqualTo("Test World");
+        Assertions.assertThat(world.getDescription()).isEqualTo("This is a test world");
+        Assertions.assertThat(world.getId()).isPresent();
+        IdDetails<WorldId> worldIdDetails = world.getId().get();
+        Assertions.assertThat(worldIdDetails.getId()).isEqualTo(worldId);
+        Assertions.assertThat(worldIdDetails.getVersion()).isEqualTo(5L);
+        Assertions.assertThat(worldIdDetails.getCreatedDate())
+            .isEqualTo(OffsetDateTime.of(2015, 7, 16, 7, 10, 0, 0, ZoneOffset.UTC));
+        Assertions.assertThat(worldIdDetails.getLastModifiedDate())
+            .isEqualTo(OffsetDateTime.of(2015, 7, 16, 7, 10, 25, 0, ZoneOffset.UTC));
+    }
+
+    /**
      * Test deleting a record that isn't known
      */
     @Test
@@ -56,7 +105,7 @@ public class MongoWorldDaoTest {
             worldsCollection.find(new BasicDBObject("_id", worldId.getId()))
                 .limit(1)
                 .first();
-        Assert.assertNull(retrievedDocument);
+        Assertions.assertThat(retrievedDocument).isNull();
     }
 
     /**
@@ -76,8 +125,8 @@ public class MongoWorldDaoTest {
             worldsCollection.find(new BasicDBObject("_id", worldId.getId()))
             .limit(1)
             .first();
-        Assert.assertNotNull(retrievedDocument);
-        Assert.assertNull(retrievedDocument.get("deletedDate"));
+        Assertions.assertThat(retrievedDocument).isNotNull()
+            .doesNotContainKey("deletedDate");
 
         dao.delete(worldId);
 
@@ -85,7 +134,7 @@ public class MongoWorldDaoTest {
             worldsCollection.find(new BasicDBObject("_id", worldId.getId()))
                 .limit(1)
                 .first();
-        Assert.assertNotNull(retrievedDocument);
-        Assert.assertNotNull(retrievedDocument.get("deletedDate"));
+        Assertions.assertThat(retrievedDocument).isNotNull()
+            .containsKey("deletedDate");
     }
 }
