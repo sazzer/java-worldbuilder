@@ -96,6 +96,73 @@ public class MongoWorldDaoTest {
     }
 
     /**
+     * Test the request to save a new document
+     */
+    @Test
+    public void testCreateNew() {
+        World world = new World();
+        world.setName("Testing World");
+        world.setDescription("A new world");
+
+        World saved = dao.save(world);
+
+        Document retrievedDocument =
+            worldsCollection.find(new BasicDBObject("_id", saved.getId().get().getId().getId()))
+                .limit(1)
+                .first();
+        Assertions.assertThat(retrievedDocument).isNotNull()
+            .containsEntry("_id", saved.getId().get().getId().getId())
+            .containsEntry("name", "Testing World")
+            .containsEntry("description", "A new world")
+            .containsEntry("version", 1L)
+            .containsEntry("createdDate", Date.from(NOW.toInstant()))
+            .containsEntry("modifiedDate", Date.from(NOW.toInstant()))
+            .doesNotContainKey("deletedDate");
+    }
+
+    /**
+     * Test the request to update an existing document
+     */
+    @Test
+    public void testUpdate() {
+        WorldId worldId = new WorldId(UUID.randomUUID().toString());
+
+        Document newDocument = new Document();
+        newDocument.append("_id", worldId.getId());
+        newDocument.append("version", 5L);
+        newDocument.append("createdDate",
+            Date.from(OffsetDateTime.of(2015, 7, 14, 7, 10, 0, 0, ZoneOffset.UTC).toInstant()));
+        newDocument.append("modifiedDate",
+            Date.from(OffsetDateTime.of(2015, 7, 14, 7, 10, 25, 0, ZoneOffset.UTC).toInstant()));
+        newDocument.append("name", "Test World");
+        newDocument.append("description", "This is a test world");
+        worldsCollection.insertOne(newDocument);
+
+        World world = new World(new IdDetails<>(worldId,
+            NOW.toOffsetDateTime(),
+            NOW.toOffsetDateTime(),
+            5L));
+        world.setName("Updated World");
+        world.setDescription("An old world");
+
+        World saved = dao.save(world);
+
+        Document retrievedDocument =
+            worldsCollection.find(new BasicDBObject("_id", worldId.getId()))
+                .limit(1)
+                .first();
+        Assertions.assertThat(retrievedDocument).isNotNull()
+            .containsEntry("_id", worldId.getId())
+            .containsEntry("name", "Updated World")
+            .containsEntry("description", "An old world")
+            .containsEntry("version", 6L)
+            .containsEntry("createdDate",
+                Date.from(OffsetDateTime.of(2015, 7, 14, 7, 10, 0, 0, ZoneOffset.UTC).toInstant()))
+            .containsEntry("modifiedDate", Date.from(NOW.toInstant()))
+            .doesNotContainKey("deletedDate");
+    }
+
+    /**
      * Test deleting a record that isn't known
      */
     @Test
@@ -137,6 +204,8 @@ public class MongoWorldDaoTest {
                 .limit(1)
                 .first();
         Assertions.assertThat(retrievedDocument).isNotNull()
+            .containsEntry("name", "Test World")
+            .containsEntry("description", "This is a test world")
             .containsKey("deletedDate");
     }
 }

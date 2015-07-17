@@ -3,6 +3,7 @@ package uk.co.grahamcox.worldbuilder.worlds.dal.mongo;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import java.util.UUID;
 import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,26 +29,38 @@ public class MongoWorldDao implements WorldDao {
     /** The logger to use */
     private static final Logger LOG = LoggerFactory.getLogger(MongoWorldDao.class);
 
-    /** Record fild for the ID */
+    /** Record Field for the ID */
     private static final String ID_FIELD = "_id";
 
-    /** Record fild for the created date */
+    /** Record Field for the created date */
     private static final String CREATED_DATE_FIELD = "createdDate";
 
-    /** Record fild for the modified date */
+    /** Record Field for the modified date */
     private static final String MODIFIED_DATE_FIELD = "modifiedDate";
 
-    /** Record fild for the version */
+    /** Record Field for the version */
     private static final String VERSION_FIELD = "version";
 
-    /** Record fild for the name */
+    /** Record Field for the name */
     private static final String NAME_FIELD = "name";
 
-    /** Record fild for the description */
+    /** Record Field for the description */
     private static final String DESCRIPTION_FIELD = "description";
 
+    /** Record Field for the deleted date */
+    private static final String DELETED_DATE_FIELD = "deletedDate";
+
     /** The UTC Timezone */
-    public static final ZoneId UTC_ZONE = ZoneId.of("UTC");
+    private static final ZoneId UTC_ZONE = ZoneId.of("UTC");
+
+    /** MongoDB operator to set the value of fields */
+    private static final String MONGO_SET_FIELDS = "$set";
+
+    /** MongoDB operator to increment the value of fields */
+    private static final String MONGO_INCREMENT_FIELDS = "$inc";
+
+    /** MongoDB operator to unset the value of fields */
+    private static final String MONGO_UNSET_FIELDS = "$unset";
 
     /** The clock to use */
     private final Clock clock;
@@ -117,6 +130,36 @@ public class MongoWorldDao implements WorldDao {
      */
     @Override
     public World save(final World world) {
+        ZonedDateTime modifiedDate = ZonedDateTime.now(clock).withZoneSameInstant(UTC_ZONE);
+
+        BasicDBObject worldData = new BasicDBObject();
+        worldData.append(NAME_FIELD, world.getName());
+        worldData.append(DESCRIPTION_FIELD, world.getDescription());
+        worldData.append(MODIFIED_DATE_FIELD, Date.from(modifiedDate.toInstant()));
+
+        if (world.getId().isPresent()) {
+            // The world is an existing one, so we'll be doing an update
+            BasicDBObject idFilter = buildIdFilter(world.getId().get());
+            LOG.debug("Updating object at {} based on filter: {}", modifiedDate, idFilter);
+
+            BasicDBObject updates = new BasicDBObject();
+            updates.append(MONGO_SET_FIELDS, worldData);
+            updates.append(MONGO_INCREMENT_FIELDS, new BasicDBObject(VERSION_FIELD, 1));
+            updates.append(MONGO_UNSET_FIELDS, new BasicDBObject(DELETED_DATE_FIELD, ""));
+
+            collection.updateOne(idFilter, updates);
+
+        } else {
+            // The world is a new one, so we'll be doing a create
+            Document document = new Document();
+            document.putAll(worldData);
+            document.append(CREATED_DATE_FIELD, Date.from(modifiedDate.toInstant()));
+            document.append(VERSION_FIELD, 1L);
+            document.append(ID_FIELD, UUID.randomUUID().toString());
+
+            collection.insertOne(document);
+            return mapDocumentToWorld(document);
+        }
         return null;
     }
 
@@ -129,10 +172,32 @@ public class MongoWorldDao implements WorldDao {
     public void delete(final WorldId worldId) {
         ZonedDateTime deletedDate = ZonedDateTime.now(clock).withZoneSameInstant(UTC_ZONE);
 
-        BasicDBObject idFilter = new BasicDBObject(ID_FIELD, worldId.getId());
+        BasicDBObject idFilter = buildIdFilter(worldId);
         LOG.debug("Deleting object at {} based on filter: {}", deletedDate, idFilter);
 
-        collection.updateOne(idFilter, new BasicDBObject("$set",
-            new BasicDBObject("deletedDate", Date.from(deletedDate.toInstant()))));
+        collection.updateOne(idFilter, new BasicDBObject(MONGO_SET_FIELDS,
+            new BasicDBObject(DELETED_DATE_FIELD, Date.from(deletedDate.toInstant()))));
+    }
+
+    /**
+     * Build the MongoDB Filter for a versioned World ID
+     * @param worldIdDetails the ID of the World
+     * @return the Filter
+     */
+    private BasicDBObject buildIdFilter(final IdDetails<WorldId> worldIdDetails) {
+        BasicDBObject idFilter = buildIdFilter(worldIdDetails.getId());
+        idFilter.append(VERSION_FIELD, worldIdDetails.getVersion());
+        return idFilter;
+    }
+
+    /**
+     * Build the MongoDB Filter for a World ID
+     * @param worldId the ID of the World
+     * @return the Filter
+     */
+    private BasicDBObject buildIdFilter(final WorldId worldId) {
+        BasicDBObject idFilter = new BasicDBObject();
+        idFilter.append(ID_FIELD, worldId.getId());
+        return idFilter;
     }
 }
