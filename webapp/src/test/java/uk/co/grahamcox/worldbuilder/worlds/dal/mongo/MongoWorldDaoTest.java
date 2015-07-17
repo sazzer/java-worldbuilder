@@ -3,18 +3,8 @@ package uk.co.grahamcox.worldbuilder.worlds.dal.mongo;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import java.time.Clock;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.UUID;
-
 import org.assertj.core.api.Assertions;
 import org.bson.Document;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -22,6 +12,16 @@ import uk.co.grahamcox.worldbuilder.model.IdDetails;
 import uk.co.grahamcox.worldbuilder.mongo.EmbeddedMongoRule;
 import uk.co.grahamcox.worldbuilder.worlds.model.World;
 import uk.co.grahamcox.worldbuilder.worlds.model.WorldId;
+
+import java.time.Clock;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.UUID;
 
 /**
  * Unit Tests for the MongoWorldDao
@@ -71,8 +71,10 @@ public class MongoWorldDaoTest {
         Document newDocument = new Document();
         newDocument.append("_id", worldId.getId());
         newDocument.append("version", 5L);
-        newDocument.append("createdDate", "2015-07-16T07:10:00Z");
-        newDocument.append("modifiedDate", "2015-07-16T07:10:25Z");
+        newDocument.append("createdDate",
+            Date.from(OffsetDateTime.of(2015, 7, 16, 7, 10, 0, 0, ZoneOffset.UTC).toInstant()));
+        newDocument.append("modifiedDate",
+            Date.from(OffsetDateTime.of(2015, 7, 16, 7, 10, 25, 0, ZoneOffset.UTC).toInstant()));
         newDocument.append("name", "Test World");
         newDocument.append("description", "This is a test world");
         worldsCollection.insertOne(newDocument);

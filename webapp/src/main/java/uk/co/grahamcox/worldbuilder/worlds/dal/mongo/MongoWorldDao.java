@@ -3,15 +3,6 @@ package uk.co.grahamcox.worldbuilder.worlds.dal.mongo;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
-import java.time.Clock;
-import java.time.OffsetDateTime;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,12 +11,43 @@ import uk.co.grahamcox.worldbuilder.worlds.dal.WorldDao;
 import uk.co.grahamcox.worldbuilder.worlds.model.World;
 import uk.co.grahamcox.worldbuilder.worlds.model.WorldId;
 
+import java.time.Clock;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * Worlds DAO that works in terms of a MongoDB store
  */
 public class MongoWorldDao implements WorldDao {
     /** The logger to use */
     private static final Logger LOG = LoggerFactory.getLogger(MongoWorldDao.class);
+
+    /** Record fild for the ID */
+    private static final String ID_FIELD = "_id";
+
+    /** Record fild for the created date */
+    private static final String CREATED_DATE_FIELD = "createdDate";
+
+    /** Record fild for the modified date */
+    private static final String MODIFIED_DATE_FIELD = "modifiedDate";
+
+    /** Record fild for the version */
+    private static final String VERSION_FIELD = "version";
+
+    /** Record fild for the name */
+    private static final String NAME_FIELD = "name";
+
+    /** Record fild for the description */
+    private static final String DESCRIPTION_FIELD = "description";
+
+    /** The UTC Timezone */
+    public static final ZoneId UTC_ZONE = ZoneId.of("UTC");
 
     /** The clock to use */
     private final Clock clock;
@@ -53,7 +75,7 @@ public class MongoWorldDao implements WorldDao {
      */
     @Override
     public Collection<World> getByIds(final Collection<WorldId> worldIds) {
-        BasicDBObject filter = new BasicDBObject("_id", new BasicDBObject(
+        BasicDBObject filter = new BasicDBObject(ID_FIELD, new BasicDBObject(
             "$in", worldIds.stream().map(WorldId::getId).collect(Collectors.toList())
         ));
         LOG.debug("Looking for Worlds with filter {}", filter);
@@ -71,19 +93,19 @@ public class MongoWorldDao implements WorldDao {
      * @param document the document
      * @return the World object
      */
-    private World mapDocumentToWorld(Document document) {
+    private World mapDocumentToWorld(final Document document) {
         LOG.debug("Converting document {} into World object", document);
 
-        WorldId worldId = new WorldId(document.getString("_id"));
+        WorldId worldId = new WorldId(document.getString(ID_FIELD));
         OffsetDateTime created =
-            OffsetDateTime.parse(document.getString("createdDate"), DateTimeFormatter.ISO_DATE_TIME);
+            OffsetDateTime.ofInstant(document.getDate(CREATED_DATE_FIELD).toInstant(), UTC_ZONE);
         OffsetDateTime modified =
-            OffsetDateTime.parse(document.getString("modifiedDate"), DateTimeFormatter.ISO_DATE_TIME);
-        Long version = document.getLong("version");
+            OffsetDateTime.ofInstant(document.getDate(MODIFIED_DATE_FIELD).toInstant(), UTC_ZONE);
+        Long version = document.getLong(VERSION_FIELD);
 
         World world = new World(new IdDetails<>(worldId, created, modified, version));
-        world.setName(document.getString("name"));
-        world.setDescription(document.getString("description"));
+        world.setName(document.getString(NAME_FIELD));
+        world.setDescription(document.getString(DESCRIPTION_FIELD));
 
         return world;
     }
@@ -105,12 +127,12 @@ public class MongoWorldDao implements WorldDao {
      */
     @Override
     public void delete(final WorldId worldId) {
-        String deletedDate = ZonedDateTime.now(clock).format(DateTimeFormatter.ISO_DATE_TIME);
+        ZonedDateTime deletedDate = ZonedDateTime.now(clock).withZoneSameInstant(UTC_ZONE);
 
-        BasicDBObject idFilter = new BasicDBObject("_id", worldId.getId());
+        BasicDBObject idFilter = new BasicDBObject(ID_FIELD, worldId.getId());
         LOG.debug("Deleting object at {} based on filter: {}", deletedDate, idFilter);
 
         collection.updateOne(idFilter, new BasicDBObject("$set",
-            new BasicDBObject("deletedDate", deletedDate)));
+            new BasicDBObject("deletedDate", Date.from(deletedDate.toInstant()))));
     }
 }
