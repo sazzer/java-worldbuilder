@@ -4,6 +4,8 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import java.util.UUID;
+
+import com.mongodb.client.model.UpdateOptions;
 import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -132,35 +134,33 @@ public class MongoWorldDao implements WorldDao {
     public World save(final World world) {
         ZonedDateTime modifiedDate = ZonedDateTime.now(clock).withZoneSameInstant(UTC_ZONE);
 
-        BasicDBObject worldData = new BasicDBObject();
-        worldData.append(NAME_FIELD, world.getName());
-        worldData.append(DESCRIPTION_FIELD, world.getDescription());
-        worldData.append(MODIFIED_DATE_FIELD, Date.from(modifiedDate.toInstant()));
-
+        BasicDBObject filter;
+        WorldId worldId;
         if (world.getId().isPresent()) {
-            // The world is an existing one, so we'll be doing an update
-            BasicDBObject idFilter = buildIdFilter(world.getId().get());
-            LOG.debug("Updating object at {} based on filter: {}", modifiedDate, idFilter);
-
-            BasicDBObject updates = new BasicDBObject();
-            updates.append(MONGO_SET_FIELDS, worldData);
-            updates.append(MONGO_INCREMENT_FIELDS, new BasicDBObject(VERSION_FIELD, 1));
-            updates.append(MONGO_UNSET_FIELDS, new BasicDBObject(DELETED_DATE_FIELD, ""));
-
-            collection.updateOne(idFilter, updates);
-
+            filter = buildIdFilter(world.getId().get());
+            worldId = world.getId().get().getId();
         } else {
-            // The world is a new one, so we'll be doing a create
-            Document document = new Document();
-            document.putAll(worldData);
-            document.append(CREATED_DATE_FIELD, Date.from(modifiedDate.toInstant()));
-            document.append(VERSION_FIELD, 1L);
-            document.append(ID_FIELD, UUID.randomUUID().toString());
-
-            collection.insertOne(document);
-            return mapDocumentToWorld(document);
+            worldId = new WorldId(UUID.randomUUID().toString());
+            filter = buildIdFilter(worldId);
         }
-        return null;
+
+        BasicDBObject updates = new BasicDBObject()
+            .append(MONGO_SET_FIELDS, new BasicDBObject()
+                .append(NAME_FIELD, world.getName())
+                .append(DESCRIPTION_FIELD, world.getDescription())
+                .append(MODIFIED_DATE_FIELD, Date.from(modifiedDate.toInstant())))
+            .append("$setOnInsert", new BasicDBObject()
+                .append(CREATED_DATE_FIELD, Date.from(modifiedDate.toInstant())))
+            .append("$inc", new BasicDBObject()
+                .append("version", 1L));
+
+        UpdateOptions updateOptions = new UpdateOptions()
+            .upsert(true);
+
+        collection.updateOne(filter, updates, updateOptions);
+
+        FindIterable<Document> documents = collection.find(buildIdFilter(worldId));
+        return mapDocumentToWorld(documents.first());
     }
 
     /**
