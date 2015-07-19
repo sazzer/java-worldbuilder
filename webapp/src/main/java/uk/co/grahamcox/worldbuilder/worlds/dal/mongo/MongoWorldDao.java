@@ -64,6 +64,9 @@ public class MongoWorldDao implements WorldDao {
     /** MongoDB operator to unset the value of fields */
     private static final String MONGO_UNSET_FIELDS = "$unset";
 
+    /** MongoDB operator to set fields only on insert */
+    private static final String MONGO_SET_ON_INSERT_FIELDS = "$setOnInsert";
+
     /** The clock to use */
     private final Clock clock;
 
@@ -149,10 +152,12 @@ public class MongoWorldDao implements WorldDao {
                 .append(NAME_FIELD, world.getName())
                 .append(DESCRIPTION_FIELD, world.getDescription())
                 .append(MODIFIED_DATE_FIELD, Date.from(modifiedDate.toInstant())))
-            .append("$setOnInsert", new BasicDBObject()
+            .append(MONGO_UNSET_FIELDS, new BasicDBObject()
+                .append(DELETED_DATE_FIELD, ""))
+            .append(MONGO_SET_ON_INSERT_FIELDS, new BasicDBObject()
                 .append(CREATED_DATE_FIELD, Date.from(modifiedDate.toInstant())))
-            .append("$inc", new BasicDBObject()
-                .append("version", 1L));
+            .append(MONGO_INCREMENT_FIELDS, new BasicDBObject()
+                .append(VERSION_FIELD, 1L));
 
         UpdateOptions updateOptions = new UpdateOptions()
             .upsert(true);

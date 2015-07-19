@@ -15,20 +15,18 @@ import uk.co.grahamcox.worldbuilder.worlds.model.WorldId;
 
 import java.time.Clock;
 import java.time.OffsetDateTime;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.UUID;
 
 /**
  * Unit Tests for the MongoWorldDao
  */
 public class MongoWorldDaoTest {
     /** The current time */
-    private static final ZonedDateTime NOW = ZonedDateTime.of(2015, 7, 15, 13, 11, 0, 0, ZoneId.of("UTC"));
+    private static final OffsetDateTime NOW = OffsetDateTime.of(2015, 7, 15, 13, 11, 0, 0, ZoneOffset.UTC);
 
     /** JUnit rule to start a MongoDB Service to use */
     @Rule
@@ -45,11 +43,32 @@ public class MongoWorldDaoTest {
      */
     @Before
     public void setup() {
-        Clock clock = Clock.fixed(NOW.toInstant(), NOW.getZone());
+        Clock clock = Clock.fixed(NOW.toInstant(), NOW.getOffset());
 
         MongoDatabase db = embeddedMongoRule.getDb();
         worldsCollection = db.getCollection("worlds");
         dao = new MongoWorldDao(clock, worldsCollection);
+
+        worldsCollection.insertMany(Arrays.asList(
+            new Document("_id", "00000001-0000-0000-0000-000000000001")
+                .append("version", 5L)
+                .append("createdDate", Date.from(NOW.toInstant()))
+                .append("modifiedDate", Date.from(NOW.toInstant()))
+                .append("name", "Test World")
+                .append("description", "World for Testing"),
+            new Document("_id", "00000001-0000-0000-0000-000000000002")
+                .append("version", 1L)
+                .append("createdDate", Date.from(NOW.minusDays(5).toInstant()))
+                .append("modifiedDate", Date.from(NOW.toInstant()))
+                .append("name", "Another Test World")
+                .append("description", "Another World for Testing"),
+            new Document("_id", "00000001-0000-0000-0000-000000000003")
+                .append("version", 1L)
+                .append("createdDate", Date.from(NOW.toInstant()))
+                .append("modifiedDate", Date.from(NOW.toInstant()))
+                .append("name", "Test World to Delete")
+                .append("description", "World for Testing Delete")
+        ));
     }
 
     /**
@@ -57,7 +76,8 @@ public class MongoWorldDaoTest {
      */
     @Test
     public void testGetUnknown() {
-        Collection<World> worlds = dao.getByIds(Collections.singleton(new WorldId("unknown")));
+        Collection<World> worlds =
+            dao.getByIds(Collections.singleton(new WorldId("00000001-0000-0000-0000-000000000000")));
         Assertions.assertThat(worlds).isEmpty();
     }
 
@@ -66,33 +86,20 @@ public class MongoWorldDaoTest {
      */
     @Test
     public void testGetSingle() {
-        WorldId worldId = new WorldId(UUID.randomUUID().toString());
-
-        Document newDocument = new Document();
-        newDocument.append("_id", worldId.getId());
-        newDocument.append("version", 5L);
-        newDocument.append("createdDate",
-            Date.from(OffsetDateTime.of(2015, 7, 16, 7, 10, 0, 0, ZoneOffset.UTC).toInstant()));
-        newDocument.append("modifiedDate",
-            Date.from(OffsetDateTime.of(2015, 7, 16, 7, 10, 25, 0, ZoneOffset.UTC).toInstant()));
-        newDocument.append("name", "Test World");
-        newDocument.append("description", "This is a test world");
-        worldsCollection.insertOne(newDocument);
+        WorldId worldId = new WorldId("00000001-0000-0000-0000-000000000001");
 
         Collection<World> worlds = dao.getByIds(Collections.singleton(worldId));
         Assertions.assertThat(worlds).hasSize(1);
         World world = worlds.iterator().next();
         Assertions.assertThat(world).isNotNull();
         Assertions.assertThat(world.getName()).isEqualTo("Test World");
-        Assertions.assertThat(world.getDescription()).isEqualTo("This is a test world");
+        Assertions.assertThat(world.getDescription()).isEqualTo("World for Testing");
         Assertions.assertThat(world.getId()).isPresent();
         IdDetails<WorldId> worldIdDetails = world.getId().get();
         Assertions.assertThat(worldIdDetails.getId()).isEqualTo(worldId);
         Assertions.assertThat(worldIdDetails.getVersion()).isEqualTo(5L);
-        Assertions.assertThat(worldIdDetails.getCreatedDate())
-            .isEqualTo(OffsetDateTime.of(2015, 7, 16, 7, 10, 0, 0, ZoneOffset.UTC));
-        Assertions.assertThat(worldIdDetails.getLastModifiedDate())
-            .isEqualTo(OffsetDateTime.of(2015, 7, 16, 7, 10, 25, 0, ZoneOffset.UTC));
+        Assertions.assertThat(worldIdDetails.getCreatedDate()).isEqualTo(NOW);
+        Assertions.assertThat(worldIdDetails.getLastModifiedDate()).isEqualTo(NOW);
     }
 
     /**
@@ -125,27 +132,16 @@ public class MongoWorldDaoTest {
      */
     @Test
     public void testUpdate() {
-        WorldId worldId = new WorldId(UUID.randomUUID().toString());
-
-        Document newDocument = new Document();
-        newDocument.append("_id", worldId.getId());
-        newDocument.append("version", 5L);
-        newDocument.append("createdDate",
-            Date.from(OffsetDateTime.of(2015, 7, 14, 7, 10, 0, 0, ZoneOffset.UTC).toInstant()));
-        newDocument.append("modifiedDate",
-            Date.from(OffsetDateTime.of(2015, 7, 14, 7, 10, 25, 0, ZoneOffset.UTC).toInstant()));
-        newDocument.append("name", "Test World");
-        newDocument.append("description", "This is a test world");
-        worldsCollection.insertOne(newDocument);
+        WorldId worldId = new WorldId("00000001-0000-0000-0000-000000000002");
 
         World world = new World(new IdDetails<>(worldId,
-            NOW.toOffsetDateTime(),
-            NOW.toOffsetDateTime(),
-            5L));
+            NOW,
+            NOW,
+            1L));
         world.setName("Updated World");
         world.setDescription("An old world");
 
-        World saved = dao.save(world);
+        dao.save(world);
 
         Document retrievedDocument =
             worldsCollection.find(new BasicDBObject("_id", worldId.getId()))
@@ -155,9 +151,8 @@ public class MongoWorldDaoTest {
             .containsEntry("_id", worldId.getId())
             .containsEntry("name", "Updated World")
             .containsEntry("description", "An old world")
-            .containsEntry("version", 6L)
-            .containsEntry("createdDate",
-                Date.from(OffsetDateTime.of(2015, 7, 14, 7, 10, 0, 0, ZoneOffset.UTC).toInstant()))
+            .containsEntry("version", 2L)
+            .containsEntry("createdDate", Date.from(NOW.minusDays(5).toInstant()))
             .containsEntry("modifiedDate", Date.from(NOW.toInstant()))
             .doesNotContainKey("deletedDate");
     }
@@ -167,7 +162,7 @@ public class MongoWorldDaoTest {
      */
     @Test
     public void testDeleteUnknown() {
-        WorldId worldId = new WorldId("unknown");
+        WorldId worldId = new WorldId("00000001-0000-0000-0000-000000000000");
         dao.delete(worldId);
 
         Document retrievedDocument =
@@ -182,19 +177,15 @@ public class MongoWorldDaoTest {
      */
     @Test
     public void testDeleteKnown() {
-        WorldId worldId = new WorldId(UUID.randomUUID().toString());
-
-        Document newDocument = new Document();
-        newDocument.append("_id", worldId.getId());
-        newDocument.append("name", "Test World");
-        newDocument.append("description", "This is a test world");
-        worldsCollection.insertOne(newDocument);
+        WorldId worldId = new WorldId("00000001-0000-0000-0000-000000000003");
 
         Document retrievedDocument =
             worldsCollection.find(new BasicDBObject("_id", worldId.getId()))
             .limit(1)
             .first();
         Assertions.assertThat(retrievedDocument).isNotNull()
+            .containsEntry("name", "Test World to Delete")
+            .containsEntry("description", "World for Testing Delete")
             .doesNotContainKey("deletedDate");
 
         dao.delete(worldId);
@@ -204,8 +195,8 @@ public class MongoWorldDaoTest {
                 .limit(1)
                 .first();
         Assertions.assertThat(retrievedDocument).isNotNull()
-            .containsEntry("name", "Test World")
-            .containsEntry("description", "This is a test world")
+            .containsEntry("name", "Test World to Delete")
+            .containsEntry("description", "World for Testing Delete")
             .containsKey("deletedDate");
     }
 }
